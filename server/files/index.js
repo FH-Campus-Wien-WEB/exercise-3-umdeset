@@ -24,6 +24,7 @@ function appendMovie(movie, element) {
           .append(new ElementBuilder("h1").text(movie.Title))
           .append(new ElementBuilder("p")
               .append(new ElementBuilder("button").text("Edit")
+                    .class("edit-btn")
                     .listener("click", () => location.href = "edit.html?imdbID=" + movie.imdbID)))
           .append(new ParagraphBuilder().items(
               "Runtime " + formatRuntime(movie.Runtime),
@@ -61,8 +62,13 @@ function loadMovies(genre) {
   }
 
   const url = new URL("/movies", location.href)
-  /* Task 1.4. Add query parameter to the url if a genre is given */
 
+  /* Task 1.4. Add query parameter to the url if a genre is given */
+  if (genre) {
+    url.searchParams.set("genre", genre);
+  }
+
+  xhr.open("GET", url)
   xhr.open("GET", url)
   xhr.send()
 }
@@ -73,12 +79,30 @@ window.onload = function () {
     const listElement = document.querySelector("nav>ul");
 
     if (xhr.status === 200) {
-      /* Task 1.3. Add the genre buttons to the listElement and 
-         initialize them with a click handler that calls the 
-         loadMovies(...) function above. */
+      //* Task 1.3. Add the genre buttons to the listElement... */
       const genres = JSON.parse(xhr.responseText);
 
-      /* When a first button exists, we click it to load all movies. */
+      // all button fpr alle filme erstellen
+      const allLi = document.createElement("li");
+      const allButton = document.createElement("button");
+      allButton.textContent = "All";
+      // wenn man all klickt rufen wir loadMovies() ohne bestimmtes Genre auf
+      allButton.onclick = function() { loadMovies(); };
+      allLi.append(allButton);
+      listElement.append(allLi);
+
+      // durch jeden genre gehen was uns der server geschickt hat
+      for (const genre of genres) {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+        button.textContent = genre;
+
+        // wenn man auf genre clickt, rufen wir loadMovies(genre) mit dem namen auf
+        button.onclick = function() { loadMovies(genre); };
+
+        li.append(button);
+        listElement.append(li);
+      }
       const firstButton = document.querySelector("nav button");
       if (firstButton) {
         firstButton.click();
